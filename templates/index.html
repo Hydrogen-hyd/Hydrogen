@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hydrogen Blockchain</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background: #121212;
+            color: #fff;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            padding: 20px;
+        }
+        .wallets, .history {
+            margin-bottom: 40px;
+        }
+        .wallets ul, .history ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        .wallets li, .history li {
+            background: rgba(0, 0, 0, 0.7);
+            margin-bottom: 10px;
+            padding: 15px;
+            border-radius: 8px;
+        }
+        h1, h2 {
+            text-align: center;
+        }
+        h3 {
+            margin-top: 30px;
+        }
+        button {
+            background: #fdbb2d;
+            border: none;
+            color: #121212;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #f16b2f;
+        }
+        .history-item {
+            display: flex;
+            flex-direction: column;
+        }
+        .timestamp {
+            font-size: 12px;
+            color: #888;
+        }
+        .history-header {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .collapsible {
+            cursor: pointer;
+            margin-top: 20px;
+            background: #333;
+            padding: 10px;
+            border-radius: 5px;
+            color: #fff;
+            text-align: center;
+        }
+        .content {
+            display: none;
+            padding: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Hydrogen Blockchain</h1>
+        <h2>Create Wallet</h2>
+        <a href="/create_wallet"><button>Create New Wallet</button></a>
+
+        <div class="wallets">
+            <h3>Your Wallets</h3>
+            <ul>
+                {% for address, wallet in wallets.items() %}
+                    <li>
+                        <strong>Address:</strong> {{ address }}<br>
+                        <strong>Balance:</strong> {{ wallet['balance'] }} HYD
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <h3>Send HYD Tokens</h3>
+        <form action="/send_transaction" method="POST">
+            <label for="sender">Sender Address:</label>
+            <input type="text" id="sender" name="sender" required><br>
+            <label for="recipient">Recipient Address:</label>
+            <input type="text" id="recipient" name="recipient" required><br>
+            <label for="amount">Amount:</label>
+            <input type="number" id="amount" name="amount" required><br>
+            <button type="submit">Send Tokens</button>
+        </form>
+
+        <div class="history">
+            <h3>Blockchain Event History</h3>
+            <ul>
+                {% for event in history %}
+                    <li class="history-item">
+                        <div class="history-header">
+                            <strong>Event:</strong> {{ event['event'] }}
+                        </div>
+                        {% if event['event'] == 'Transaction' %}
+                            <div><strong>Sender:</strong> {{ event['details']['sender'] }}<br>
+                            <strong>Receiver:</strong> {{ event['details']['receiver'] }}<br>
+                            <strong>Amount Sent:</strong> {{ event['details']['amount'] }} HYD<br>
+                            <strong>Transaction Fee:</strong> {{ event['details']['fee'] }} HYD<br>
+                            <strong>Sender Balance:</strong> {{ event['details']['sender_balance'] }} HYD<br>
+                            <strong>Receiver Balance:</strong> {{ event['details']['receiver_balance'] }} HYD</div>
+                        {% elif event['event'] == 'Wallet Created' %}
+                            <div><strong>New Wallet Address:</strong> {{ event['details']['address'] }}</div>
+                        {% endif %}
+                        <div class="timestamp">
+                            <strong>Timestamp:</strong> {{ event['timestamp'] | datetimeformat }}
+                        </div>
+                    </li>
+                {% endfor %}
+            </ul>
+            <button class="collapsible">Show All Events</button>
+            <div class="content">
+                <ul>
+                    {% for event in history %}
+                        <li class="history-item">
+                            <div class="history-header">
+                                <strong>Event:</strong> {{ event['event'] }}
+                            </div>
+                            {% if event['event'] == 'Transaction' %}
+                                <div><strong>Sender:</strong> {{ event['details']['sender'] }}<br>
+                                <strong>Receiver:</strong> {{ event['details']['receiver'] }}<br>
+                                <strong>Amount Sent:</strong> {{ event['details']['amount'] }} HYD<br>
+                                <strong>Transaction Fee:</strong> {{ event['details']['fee'] }} HYD<br>
+                                <strong>Sender Balance:</strong> {{ event['details']['sender_balance'] }} HYD<br>
+                                <strong>Receiver Balance:</strong> {{ event['details']['receiver_balance'] }} HYD</div>
+                            {% elif event['event'] == 'Wallet Created' %}
+                                <div><strong>New Wallet Address:</strong> {{ event['details']['address'] }}</div>
+                            {% endif %}
+                            <div class="timestamp">
+                                <strong>Timestamp:</strong> {{ event['timestamp'] | datetimeformat }}
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Collapsible functionality for the event history
+        const collapsible = document.querySelector('.collapsible');
+        const content = document.querySelector('.content');
+
+        collapsible.addEventListener('click', function() {
+            content.style.display = content.style.display === "block" ? "none" : "block";
+        });
+    </script>
+</body>
+</html>
