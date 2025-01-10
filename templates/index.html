@@ -16,14 +16,14 @@
         .container {
             padding: 20px;
         }
-        .wallets, .history {
+        .wallets, .history, .smart-contracts {
             margin-bottom: 40px;
         }
-        .wallets ul, .history ul {
+        .wallets ul, .history ul, .smart-contracts ul {
             list-style-type: none;
             padding: 0;
         }
-        .wallets li, .history li {
+        .wallets li, .history li, .smart-contracts li {
             background: rgba(0, 0, 0, 0.7);
             margin-bottom: 10px;
             padding: 15px;
@@ -60,19 +60,6 @@
             font-weight: bold;
             margin-bottom: 5px;
         }
-        .collapsible {
-            cursor: pointer;
-            margin-top: 20px;
-            background: #333;
-            padding: 10px;
-            border-radius: 5px;
-            color: #fff;
-            text-align: center;
-        }
-        .content {
-            display: none;
-            padding: 10px 0;
-        }
     </style>
 </head>
 <body>
@@ -104,6 +91,28 @@
             <button type="submit">Send Tokens</button>
         </form>
 
+        <div class="smart-contracts">
+            <h3>Smart Contracts</h3>
+            <form action="/create_smart_contract" method="POST">
+                <textarea name="contract_code" placeholder="Enter your smart contract code here..." required></textarea><br>
+                <button type="submit">Create Smart Contract</button>
+            </form>
+
+            <h4>Existing Smart Contracts</h4>
+            <ul>
+                {% for contract in smart_contracts %}
+                    <li>
+                        <strong>Contract Hash:</strong> {{ contract['contract_hash'] }}<br>
+                        <strong>Code:</strong> {{ contract['contract_code'] }}<br>
+                        <form action="/execute_smart_contract" method="POST">
+                            <input type="hidden" name="contract_hash" value="{{ contract['contract_hash'] }}">
+                            <button type="submit">Execute Smart Contract</button>
+                        </form>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+
         <div class="history">
             <h3>Blockchain Event History</h3>
             <ul>
@@ -118,9 +127,16 @@
                             <strong>Amount Sent:</strong> {{ event['details']['amount'] }} HYD<br>
                             <strong>Transaction Fee:</strong> {{ event['details']['fee'] }} HYD<br>
                             <strong>Sender Balance:</strong> {{ event['details']['sender_balance'] }} HYD<br>
-                            <strong>Receiver Balance:</strong> {{ event['details']['receiver_balance'] }} HYD</div>
+                            <strong>Receiver Balance:</strong> {{ event['details']['receiver_balance'] }} HYD<br>
+                            <strong>Current Block Hash:</strong> {{ event['details']['block_hash'] }}<br>
+                            <strong>Previous Block Hash:</strong> {{ event['details']['prev_block_hash'] }}
+                            </div>
                         {% elif event['event'] == 'Wallet Created' %}
                             <div><strong>New Wallet Address:</strong> {{ event['details']['address'] }}</div>
+                        {% elif event['event'] == 'Smart Contract Created' %}
+                            <div><strong>Smart Contract Hash:</strong> {{ event['details']['contract_hash'] }}</div>
+                        {% elif event['event'] == 'Smart Contract Executed' %}
+                            <div><strong>Executed Smart Contract Hash:</strong> {{ event['details']['contract_hash'] }}</div>
                         {% endif %}
                         <div class="timestamp">
                             <strong>Timestamp:</strong> {{ event['timestamp'] | datetimeformat }}
@@ -128,42 +144,7 @@
                     </li>
                 {% endfor %}
             </ul>
-            <button class="collapsible">Show All Events</button>
-            <div class="content">
-                <ul>
-                    {% for event in history %}
-                        <li class="history-item">
-                            <div class="history-header">
-                                <strong>Event:</strong> {{ event['event'] }}
-                            </div>
-                            {% if event['event'] == 'Transaction' %}
-                                <div><strong>Sender:</strong> {{ event['details']['sender'] }}<br>
-                                <strong>Receiver:</strong> {{ event['details']['receiver'] }}<br>
-                                <strong>Amount Sent:</strong> {{ event['details']['amount'] }} HYD<br>
-                                <strong>Transaction Fee:</strong> {{ event['details']['fee'] }} HYD<br>
-                                <strong>Sender Balance:</strong> {{ event['details']['sender_balance'] }} HYD<br>
-                                <strong>Receiver Balance:</strong> {{ event['details']['receiver_balance'] }} HYD</div>
-                            {% elif event['event'] == 'Wallet Created' %}
-                                <div><strong>New Wallet Address:</strong> {{ event['details']['address'] }}</div>
-                            {% endif %}
-                            <div class="timestamp">
-                                <strong>Timestamp:</strong> {{ event['timestamp'] | datetimeformat }}
-                            </div>
-                        </li>
-                    {% endfor %}
-                </ul>
-            </div>
         </div>
     </div>
-
-    <script>
-        // Collapsible functionality for the event history
-        const collapsible = document.querySelector('.collapsible');
-        const content = document.querySelector('.content');
-
-        collapsible.addEventListener('click', function() {
-            content.style.display = content.style.display === "block" ? "none" : "block";
-        });
-    </script>
 </body>
 </html>
