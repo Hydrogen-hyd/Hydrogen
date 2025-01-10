@@ -17,7 +17,8 @@ def index():
     """Homepage that displays wallets and events"""
     wallets = blockchain.wallets
     history = blockchain.get_history()  # Get full history (wallet creation + transactions)
-    return render_template('index.html', wallets=wallets, history=history)
+    smart_contracts = blockchain.smart_contracts  # Get list of smart contracts
+    return render_template('index.html', wallets=wallets, history=history, smart_contracts=smart_contracts)
 
 @app.route('/create_wallet', methods=['GET', 'POST'])
 def create_wallet():
@@ -36,6 +37,20 @@ def send_transaction():
 
     # Send the transaction
     blockchain.new_transaction(sender, receiver, amount)
+    return redirect(url_for('index'))
+
+@app.route('/create_smart_contract', methods=['POST'])
+def create_smart_contract():
+    """Create a new smart contract"""
+    contract_code = request.form['contract_code']
+    contract = blockchain.create_smart_contract(contract_code)
+    return redirect(url_for('index'))
+
+@app.route('/execute_smart_contract', methods=['POST'])
+def execute_smart_contract():
+    """Execute a smart contract"""
+    contract_hash = request.form['contract_hash']
+    result = blockchain.execute_smart_contract(contract_hash)
     return redirect(url_for('index'))
 
 if __name__ == '__main__':
