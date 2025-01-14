@@ -16,14 +16,14 @@
         .container {
             padding: 20px;
         }
-        .wallets, .history, .smart-contracts {
+        .wallets, .smart-contracts {
             margin-bottom: 40px;
         }
-        .wallets ul, .history ul, .smart-contracts ul {
+        .wallets ul, .smart-contracts ul {
             list-style-type: none;
             padding: 0;
         }
-        .wallets li, .history li, .smart-contracts li {
+        .wallets li, .smart-contracts li {
             background: rgba(0, 0, 0, 0.7);
             margin-bottom: 10px;
             padding: 15px;
@@ -48,25 +48,18 @@
         button:hover {
             background: #f16b2f;
         }
-        .history-item {
-            display: flex;
-            flex-direction: column;
-        }
-        .timestamp {
-            font-size: 12px;
-            color: #888;
-        }
-        .history-header {
-            font-weight: bold;
-            margin-bottom: 5px;
+        a {
+            color: #fdbb2d;
+            text-decoration: none;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Hydrogen Blockchain</h1>
-        <h2>Create Wallet</h2>
+        <h2>V0.0.3</h2>
         <a href="/create_wallet"><button>Create New Wallet</button></a>
+        <a href="/analytics"><button>View Analytics</button></a>
 
         <div class="wallets">
             <h3>Your Wallets</h3>
@@ -113,38 +106,20 @@
             </ul>
         </div>
 
-        <div class="history">
-            <h3>Blockchain Event History</h3>
-            <ul>
-                {% for event in history %}
-                    <li class="history-item">
-                        <div class="history-header">
-                            <strong>Event:</strong> {{ event['event'] }}
-                        </div>
-                        {% if event['event'] == 'Transaction' %}
-                            <div><strong>Sender:</strong> {{ event['details']['sender'] }}<br>
-                            <strong>Receiver:</strong> {{ event['details']['receiver'] }}<br>
-                            <strong>Amount Sent:</strong> {{ event['details']['amount'] }} HYD<br>
-                            <strong>Transaction Fee:</strong> {{ event['details']['fee'] }} HYD<br>
-                            <strong>Sender Balance:</strong> {{ event['details']['sender_balance'] }} HYD<br>
-                            <strong>Receiver Balance:</strong> {{ event['details']['receiver_balance'] }} HYD<br>
-                            <strong>Current Block Hash:</strong> {{ event['details']['block_hash'] }}<br>
-                            <strong>Previous Block Hash:</strong> {{ event['details']['prev_block_hash'] }}
-                            </div>
-                        {% elif event['event'] == 'Wallet Created' %}
-                            <div><strong>New Wallet Address:</strong> {{ event['details']['address'] }}</div>
-                        {% elif event['event'] == 'Smart Contract Created' %}
-                            <div><strong>Smart Contract Hash:</strong> {{ event['details']['contract_hash'] }}</div>
-                        {% elif event['event'] == 'Smart Contract Executed' %}
-                            <div><strong>Executed Smart Contract Hash:</strong> {{ event['details']['contract_hash'] }}</div>
-                        {% endif %}
-                        <div class="timestamp">
-                            <strong>Timestamp:</strong> {{ event['timestamp'] | datetimeformat }}
-                        </div>
-                    </li>
-                {% endfor %}
-            </ul>
+        <h3>Token Management</h3>
+        <div>
+            <strong>Total Token Supply:</strong> {{ token_supply }} HYD
         </div>
+        <form action="/mint_tokens" method="POST">
+            <label for="mint_amount">Amount to Mint:</label>
+            <input type="number" id="mint_amount" name="mint_amount" required><br>
+            <button type="submit">Mint Tokens</button>
+        </form>
+        <form action="/burn_tokens" method="POST">
+            <label for="burn_amount">Amount to Burn:</label>
+            <input type="number" id="burn_amount" name="burn_amount" required><br>
+            <button type="submit">Burn Tokens</button>
+        </form>
     </div>
 </body>
 </html>
