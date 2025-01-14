@@ -4,25 +4,40 @@ from datetime import datetime
 
 app = Flask(__name__)
 
-# Initialize the blockchain
 blockchain = Blockchain()
 
-# Custom filter for date formatting
 @app.template_filter('datetimeformat')
 def datetimeformat(value):
     return datetime.fromtimestamp(value).strftime('%Y-%m-%d %H:%M:%S')
 
 @app.route('/')
 def index():
-    """Homepage that displays wallets and events"""
     wallets = blockchain.wallets
-    history = blockchain.get_history()  # Get full history (wallet creation + transactions)
-    smart_contracts = blockchain.smart_contracts  # Get list of smart contracts
-    return render_template('index.html', wallets=wallets, history=history, smart_contracts=smart_contracts)
+    smart_contracts = blockchain.smart_contracts
+    token_supply = blockchain.get_token_supply()
+    return render_template('index.html', wallets=wallets, smart_contracts=smart_contracts, token_supply=token_supply)
+
+@app.route('/analytics')
+def analytics():
+    history = blockchain.get_history()
+    token_supply = blockchain.get_token_supply()
+    total_blocks = len(blockchain.chain)
+    
+    # Fix for total transactions
+    total_transactions = sum(len(block.get('transactions', [])) for block in blockchain.chain)
+    
+    total_wallets = len(blockchain.wallets)
+    circulating_supply = sum(wallet['balance'] for wallet in blockchain.wallets.values())
+    return render_template('analytics.html', 
+                           history=history, 
+                           token_supply=token_supply, 
+                           total_blocks=total_blocks, 
+                           total_transactions=total_transactions, 
+                           total_wallets=total_wallets, 
+                           circulating_supply=circulating_supply)
 
 @app.route('/create_wallet', methods=['GET', 'POST'])
 def create_wallet():
-    """Create a new wallet"""
     if request.method == 'POST':
         address = blockchain.create_wallet()
         return redirect(url_for('index'))
@@ -30,27 +45,34 @@ def create_wallet():
 
 @app.route('/send_transaction', methods=['POST'])
 def send_transaction():
-    """Send HYD tokens from one wallet to another"""
     sender = request.form['sender']
     receiver = request.form['recipient']
     amount = float(request.form['amount'])
-
-    # Send the transaction
     blockchain.new_transaction(sender, receiver, amount)
     return redirect(url_for('index'))
 
 @app.route('/create_smart_contract', methods=['POST'])
 def create_smart_contract():
-    """Create a new smart contract"""
     contract_code = request.form['contract_code']
     contract = blockchain.create_smart_contract(contract_code)
     return redirect(url_for('index'))
 
 @app.route('/execute_smart_contract', methods=['POST'])
 def execute_smart_contract():
-    """Execute a smart contract"""
     contract_hash = request.form['contract_hash']
     result = blockchain.execute_smart_contract(contract_hash)
+    return redirect(url_for('index'))
+
+@app.route('/mint_tokens', methods=['POST'])
+def mint_tokens():
+    mint_amount = int(request.form['mint_amount'])
+    blockchain.mint_tokens(mint_amount)
+    return redirect(url_for('index'))
+
+@app.route('/burn_tokens', methods=['POST'])
+def burn_tokens():
+    burn_amount = int(request.form['burn_amount'])
+    blockchain.burn_tokens(burn_amount)
     return redirect(url_for('index'))
 
 if __name__ == '__main__':
