@@ -23,7 +23,6 @@ def analytics():
     token_supply = blockchain.get_token_supply()
     total_blocks = len(blockchain.chain)
     
-    # Fix for total transactions
     total_transactions = sum(len(block.get('transactions', [])) for block in blockchain.chain)
     
     total_wallets = len(blockchain.wallets)
@@ -48,7 +47,22 @@ def send_transaction():
     sender = request.form['sender']
     receiver = request.form['recipient']
     amount = float(request.form['amount'])
-    blockchain.new_transaction(sender, receiver, amount)
+    lock_time_enabled = request.form.get('lock_time_enabled')
+    lock_time = None
+    if lock_time_enabled:
+        lock_time = request.form.get('lock_time')
+        if lock_time:
+            lock_time = datetime.strptime(lock_time, '%Y-%m-%dT%H:%M').timestamp()
+    blockchain.new_transaction(sender, receiver, amount, lock_time)
+    return redirect(url_for('index'))
+
+@app.route('/faucet', methods=['POST'])
+def faucet():
+    wallet_address = request.form['wallet']
+    faucet_amount = 10.0  # Amount to send from the faucet
+    if wallet_address in blockchain.wallets:
+        blockchain.wallets[wallet_address]['balance'] += faucet_amount
+        blockchain.add_event('Faucet Claim', {'wallet': wallet_address, 'amount': faucet_amount})
     return redirect(url_for('index'))
 
 @app.route('/create_smart_contract', methods=['POST'])
