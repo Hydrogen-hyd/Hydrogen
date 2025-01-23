@@ -57,7 +57,7 @@
 <body>
     <div class="container">
         <h1>Hydrogen Blockchain</h1>
-        <h2>V0.0.3</h2>
+        <h2>V0.0.4</h2>
         <a href="/create_wallet"><button>Create New Wallet</button></a>
         <a href="/analytics"><button>View Analytics</button></a>
 
@@ -81,7 +81,24 @@
             <input type="text" id="recipient" name="recipient" required><br>
             <label for="amount">Amount:</label>
             <input type="number" id="amount" name="amount" required><br>
+            <input type="checkbox" id="lock_time_enabled" name="lock_time_enabled">
+            <label for="lock_time_enabled">Enable Time Lock</label><br>
+            <div id="lock_time_section" style="display: none;">
+                <label for="lock_time">Transaction Lock Time (UTC):</label>
+                <input type="datetime-local" id="lock_time" name="lock_time"><br>
+            </div>
             <button type="submit">Send Tokens</button>
+        </form>
+
+        <h3>Faucet Section</h3>
+        <form action="/faucet" method="POST">
+            <label for="wallet">Choose a Wallet:</label>
+            <select name="wallet" id="wallet" required>
+                {% for address in wallets.keys() %}
+                    <option value="{{ address }}">{{ address }}</option>
+                {% endfor %}
+            </select><br>
+            <button type="submit">Claim 10 HYD</button>
         </form>
 
         <div class="smart-contracts">
@@ -121,5 +138,16 @@
             <button type="submit">Burn Tokens</button>
         </form>
     </div>
+
+    <script>
+        document.getElementById('lock_time_enabled').addEventListener('change', function() {
+            const lockTimeSection = document.getElementById('lock_time_section');
+            if (this.checked) {
+                lockTimeSection.style.display = 'block';
+            } else {
+                lockTimeSection.style.display = 'none';
+            }
+        });
+    </script>
 </body>
 </html>
