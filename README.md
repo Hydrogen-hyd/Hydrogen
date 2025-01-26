@@ -63,3 +63,8 @@ Be a part of Hydrogen's journey! Whether you're a developer, investor, or blockc
 ---
 
 ### Together, let's build a sustainable future with **Hydrogen (HYD)**.
+
+<div align="center">
+  <a href="https://github.com/Hydrogen-hyd" style="text-decoration:none;">
+    <img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-github.png" width="2.8%" alt="" /></a>
+</div>
