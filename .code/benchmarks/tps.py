@@ -1,5 +1,13 @@
 import time
-from blockchain import Blockchain
+import sys
+from pathlib import Path
+
+# Ensure the blockchain module is in the path
+current_dir = Path(__file__).resolve().parent
+parent_dir = current_dir.parent
+sys.path.append(str(parent_dir))
+
+from blockchain import Blockchain  # Import Blockchain after adding the correct path
 
 def benchmark_transactions(blockchain, num_transactions):
     """
