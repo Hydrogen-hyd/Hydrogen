@@ -12,7 +12,7 @@ Hydrogen is a blockchain protocol that uses a Proof-of-Authority (PoA) consensus
 ## ⚡ Key Features
 
 ### 1. **Speed and Efficiency**
-- **Fast Transactions**: Hydrogen processes transactions in seconds, ensuring a smooth user experience.
+- **Fast Transactions**: Hydrogen processes transactions in milliseconds, ensuring a smooth user experience.
 - **Scalability**: Designed to handle thousands of transactions per second to meet growing demand.
 
 ### 2. **Eco-Friendly and Sustainable**
@@ -34,6 +34,7 @@ Hydrogen is committed to:
 - Providing a fast and eco-friendly blockchain for real-world applications.
 - Supporting a diverse ecosystem of developers, businesses, and users.
 - Continuously improving the platform with new features and updates.
+- Becoming the fastest blockchain for transactions in history.
 
 ---
 
@@ -42,7 +43,6 @@ Here are some of the features we are working on:
 
 - **Hydrogen Token Standard**: Simplified tools for creating and managing tokens.
 - **Cross-Chain Compatibility**: Interact seamlessly with other blockchain networks.
-- **Hydrogen Wallet**: A secure wallet for managing HYD and other tokens.
 - **NFT Marketplace**: A platform for creating, buying, and selling NFTs with minimal environmental impact.
 
 ---
