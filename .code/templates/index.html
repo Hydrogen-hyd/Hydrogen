@@ -81,12 +81,19 @@
             <input type="text" id="recipient" name="recipient" required><br>
             <label for="amount">Amount:</label>
             <input type="number" id="amount" name="amount" required><br>
+            
+            <!-- Time Lock Feature -->
             <input type="checkbox" id="lock_time_enabled" name="lock_time_enabled">
             <label for="lock_time_enabled">Enable Time Lock</label><br>
             <div id="lock_time_section" style="display: none;">
                 <label for="lock_time">Transaction Lock Time (UTC):</label>
                 <input type="datetime-local" id="lock_time" name="lock_time"><br>
             </div>
+
+            <!-- Private Transactions Feature -->
+            <input type="checkbox" id="private_tx_enabled" name="private_tx_enabled">
+            <label for="private_tx_enabled">Enable Private Transaction</label><br>
+
             <button type="submit">Send Tokens</button>
         </form>
 
@@ -137,6 +144,13 @@
             <input type="number" id="burn_amount" name="burn_amount" required><br>
             <button type="submit">Burn Tokens</button>
         </form>
+
+        <h3>Reputation Scores</h3>
+        <div>
+            {% for address, score in reputation_scores.items() %}
+                <p><strong>{{ address }}:</strong> {{ score }} Points</p>
+            {% endfor %}
+        </div>
     </div>
 
     <script>
