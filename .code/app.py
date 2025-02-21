@@ -4,95 +4,33 @@ import hashlib
 import json
 import random
 from datetime import datetime
+from blockchain import Blockchain
 
 app = Flask(__name__)
-
-class Blockchain:
-    def __init__(self):
-        self.chain = []
-        self.current_transactions = []
-        self.wallets = {}
-        self.smart_contracts = []
-        self.token_supply = 1000000  # Initial supply
-        self.reputation_scores = {}  # Store reputation scores
-        self.create_block(prev_hash="1", proof=100)
-        self.events = []
-
-    def create_wallet(self):
-        address = hashlib.sha256(str(time.time()).encode()).hexdigest()
-        self.wallets[address] = {'balance': 100.0}
-        self.reputation_scores[address] = 50  # Neutral reputation
-        self.add_event('Wallet Created', {'address': address})
-        return address
-
-    def new_transaction(self, sender, receiver, amount, lock_time=None, private=False):
-        if sender not in self.wallets and sender != "faucet":
-            return "Sender does not exist."
-        if receiver not in self.wallets:
-            return "Recipient does not exist."
-        if sender != "faucet" and self.wallets[sender]['balance'] < amount + 0.5:
-            return "Insufficient funds."
-
-        fee = 0.5
-        if sender != "faucet":
-            self.wallets[sender]['balance'] -= (amount + fee)
-        self.wallets[receiver]['balance'] += amount
-
-        transaction_data = {
-            'sender': sender if not private else "Anonymous",
-            'receiver': receiver if not private else "Anonymous",
-            'amount': amount if not private else "Hidden",
-            'fee': fee,
-            'block_hash': self.chain[-1]['hash'],
-            'prev_block_hash': self.chain[-2]['hash'] if len(self.chain) > 1 else 'None',
-            'lock_time': lock_time
-        }
-
-        self.current_transactions.append(transaction_data)
-        self.add_event('Transaction', transaction_data)
-        
-        self.update_reputation(sender, receiver)
-
-        return transaction_data
-
-    def update_reputation(self, sender, receiver):
-        if sender in self.reputation_scores:
-            self.reputation_scores[sender] = max(0, self.reputation_scores[sender] - random.randint(1, 5))
-        if receiver in self.reputation_scores:
-            self.reputation_scores[receiver] = min(100, self.reputation_scores[receiver] + random.randint(1, 5))
-
-    def create_block(self, proof, prev_hash):
-        block = {
-            'index': len(self.chain) + 1,
-            'timestamp': time.time(),
-            'transactions': self.current_transactions,
-            'proof': proof,
-            'prev_hash': prev_hash,
-            'hash': hashlib.sha256(json.dumps(self.current_transactions).encode()).hexdigest()
-        }
-        self.current_transactions = []
-        self.chain.append(block)
-        return block
-
-    def get_reputation(self, address):
-        return self.reputation_scores.get(address, 0)
-
-    def add_event(self, event, details):
-        self.events.append({
-            'event': event,
-            'details': details,
-            'timestamp': time.time()
-        })
-
 blockchain = Blockchain()
+
+# Custom Jinja2 filter for formatting timestamps
+@app.template_filter('datetimeformat')
+def datetimeformat(value):
+    return datetime.fromtimestamp(value).strftime('%Y-%m-%d %H:%M:%S')
 
 @app.route('/')
 def index():
-    return render_template('index.html', blockchain=blockchain)
+    return render_template(
+        'index.html',
+        wallets=blockchain.get_wallets(),
+        smart_contracts=blockchain.get_smart_contracts(),
+        token_supply=blockchain.get_token_supply(),
+        reputation_scores=blockchain.get_reputation_scores()
+    )
 
 @app.route('/create_wallet', methods=['POST'])
 def create_wallet():
-    address = blockchain.create_wallet()
+    wallet_address = blockchain.create_wallet()
+    if wallet_address:
+        print(f"✅ New wallet created: {wallet_address}")  # Debugging log
+    else:
+        print("❌ Wallet creation failed!")  # Debugging log
     return redirect(url_for('index'))
 
 @app.route('/send_transaction', methods=['POST'])
@@ -100,11 +38,10 @@ def send_transaction():
     sender = request.form['sender']
     receiver = request.form['recipient']
     amount = float(request.form['amount'])
-    private = request.form.get('private') == 'on'
+    private = request.form.get('private_tx_enabled') == 'on'
 
-    lock_time_enabled = request.form.get('lock_time_enabled')
     lock_time = None
-    if lock_time_enabled:
+    if 'lock_time_enabled' in request.form:
         lock_time = request.form.get('lock_time')
         if lock_time:
             lock_time = datetime.strptime(lock_time, '%Y-%m-%dT%H:%M').timestamp()
@@ -112,10 +49,54 @@ def send_transaction():
     blockchain.new_transaction(sender, receiver, amount, lock_time, private)
     return redirect(url_for('index'))
 
-@app.route('/get_reputation/<address>')
-def get_reputation(address):
-    score = blockchain.get_reputation(address)
-    return jsonify({'address': address, 'reputation': score})
+@app.route('/faucet', methods=['POST'])
+def faucet():
+    wallet = request.form['wallet']
+    blockchain.faucet(wallet)
+    return redirect(url_for('index'))
+
+@app.route('/mint_tokens', methods=['POST'])
+def mint_tokens():
+    amount = int(request.form['mint_amount'])
+    blockchain.mint_tokens(amount)
+    return redirect(url_for('index'))
+
+@app.route('/burn_tokens', methods=['POST'])
+def burn_tokens():
+    amount = int(request.form['burn_amount'])
+    blockchain.burn_tokens(amount)
+    return redirect(url_for('index'))
+
+@app.route('/create_smart_contract', methods=['POST'])
+def create_smart_contract():
+    contract_code = request.form['contract_code']
+    blockchain.create_smart_contract(contract_code)
+    return redirect(url_for('index'))
+
+@app.route('/execute_smart_contract', methods=['POST'])
+def execute_smart_contract():
+    contract_hash = request.form['contract_hash']
+    blockchain.execute_smart_contract(contract_hash)
+    return redirect(url_for('index'))
+
+@app.route('/analytics')
+def analytics():
+    history = blockchain.get_history()
+    total_blocks = len(blockchain.chain)
+    total_transactions = sum(len(block['transactions']) for block in blockchain.chain)
+    total_wallets = len(blockchain.wallets)
+    token_supply = blockchain.token_supply
+    circulating_supply = sum(wallet['balance'] for wallet in blockchain.wallets.values())
+
+    return render_template(
+        'analytics.html',
+        history=history,
+        total_blocks=total_blocks,
+        total_transactions=total_transactions,
+        total_wallets=total_wallets,
+        token_supply=token_supply,
+        circulating_supply=circulating_supply
+    )
 
 if __name__ == '__main__':
     app.run(debug=True)
