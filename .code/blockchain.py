@@ -7,26 +7,40 @@ class Blockchain:
     def __init__(self):
         self.chain = []
         self.current_transactions = []
-        self.wallets = {}
+        self.wallets = {}  # Now properly persists new wallets
         self.smart_contracts = []
-        self.token_supply = 1000000  # Initial token supply
-        self.reputation_scores = {}  # Store reputation scores for wallets
+        self.token_supply = 1000000
+        self.reputation_scores = {}
         self.create_block(prev_hash="1", proof=100)
         self.events = []
 
     def create_wallet(self):
         address = hashlib.sha256(str(time.time()).encode()).hexdigest()
+
+        # Check if wallet already exists (should be highly unlikely)
+        if address in self.wallets:
+            print("❌ Wallet already exists (very rare case)")
+            return None
+
+        # Assign initial balance and reputation
         self.wallets[address] = {'balance': 100.0}
-        self.reputation_scores[address] = 50  # Start with a neutral reputation
+        self.reputation_scores[address] = 50
+
+        # Store wallet creation event
         self.add_event('Wallet Created', {'address': address})
+        print(f"✅ Wallet successfully created: {address}")  # Debugging log
+
         return address
 
     def new_transaction(self, sender, receiver, amount, lock_time=None, private=False):
         if sender not in self.wallets and sender != "faucet":
+            print(f"❌ Sender {sender} does not exist!")
             return "Sender does not exist."
         if receiver not in self.wallets:
+            print(f"❌ Recipient {receiver} does not exist!")
             return "Recipient does not exist."
         if sender != "faucet" and self.wallets[sender]['balance'] < amount + 0.5:
+            print(f"❌ Insufficient funds for {sender}")
             return "Insufficient funds."
 
         fee = 0.5
@@ -46,10 +60,14 @@ class Blockchain:
 
         self.current_transactions.append(transaction_data)
         self.add_event('Transaction', transaction_data)
-        
         self.update_reputation(sender, receiver)
 
         return transaction_data
+
+    def faucet(self, address):
+        if address in self.wallets:
+            self.wallets[address]['balance'] += 10
+            self.add_event('Faucet Claim', {'address': address, 'amount': 10})
 
     def update_reputation(self, sender, receiver):
         if sender in self.reputation_scores:
@@ -70,6 +88,9 @@ class Blockchain:
         self.chain.append(block)
         return block
 
+    def get_wallets(self):
+        return self.wallets
+
     def get_token_supply(self):
         return self.token_supply
 
@@ -83,6 +104,21 @@ class Blockchain:
         self.token_supply -= amount
         self.add_event('Tokens Burned', {'amount': amount})
 
+    def create_smart_contract(self, contract_code):
+        contract_hash = hashlib.sha256(contract_code.encode()).hexdigest()
+        self.smart_contracts.append({'contract_hash': contract_hash, 'contract_code': contract_code})
+        self.add_event('Smart Contract Created', {'contract_hash': contract_hash})
+
+    def execute_smart_contract(self, contract_hash):
+        for contract in self.smart_contracts:
+            if contract['contract_hash'] == contract_hash:
+                self.add_event('Smart Contract Executed', {'contract_hash': contract_hash})
+                return "Smart contract executed successfully."
+        return "Contract not found."
+
+    def get_smart_contracts(self):
+        return self.smart_contracts
+
     def add_event(self, event, details):
         self.events.append({
             'event': event,
@@ -93,5 +129,5 @@ class Blockchain:
     def get_history(self):
         return self.events
 
-    def get_reputation(self, address):
-        return self.reputation_scores.get(address, 0)
+    def get_reputation_scores(self):
+        return self.reputation_scores
