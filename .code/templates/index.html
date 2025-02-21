@@ -82,7 +82,6 @@
             <label for="amount">Amount:</label>
             <input type="number" id="amount" name="amount" required><br>
             
-            <!-- Time Lock Feature -->
             <input type="checkbox" id="lock_time_enabled" name="lock_time_enabled">
             <label for="lock_time_enabled">Enable Time Lock</label><br>
             <div id="lock_time_section" style="display: none;">
@@ -90,9 +89,8 @@
                 <input type="datetime-local" id="lock_time" name="lock_time"><br>
             </div>
 
-            <!-- Private Transactions Feature -->
             <input type="checkbox" id="private_tx_enabled" name="private_tx_enabled">
-            <label for="private_tx_enabled">Enable Private Transaction</label><br>
+            <label for="private_tx_enabled">Enable Private Transactions</label><br>
 
             <button type="submit">Send Tokens</button>
         </form>
@@ -151,16 +149,13 @@
                 <p><strong>{{ address }}:</strong> {{ score }} Points</p>
             {% endfor %}
         </div>
+
     </div>
 
     <script>
         document.getElementById('lock_time_enabled').addEventListener('change', function() {
             const lockTimeSection = document.getElementById('lock_time_section');
-            if (this.checked) {
-                lockTimeSection.style.display = 'block';
-            } else {
-                lockTimeSection.style.display = 'none';
-            }
+            lockTimeSection.style.display = this.checked ? 'block' : 'none';
         });
     </script>
 </body>
