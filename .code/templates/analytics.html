@@ -55,7 +55,7 @@
         <div class="history">
             <h2>Blockchain Event History</h2>
             <ul>
-                {% for event in history %}
+                {% for event in history|reverse %}
                     <li>
                         <strong>Event:</strong> {{ event['event'] }}<br>
                         <strong>Details:</strong> {{ event['details'] }}<br>
