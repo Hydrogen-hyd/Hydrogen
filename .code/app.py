@@ -24,14 +24,17 @@ def index():
         reputation_scores=blockchain.get_reputation_scores()
     )
 
-@app.route('/create_wallet', methods=['POST'])
+@app.route('/create_wallet', methods=['GET', 'POST'])
 def create_wallet():
-    wallet_address = blockchain.create_wallet()
-    if wallet_address:
-        print(f"✅ New wallet created: {wallet_address}")  # Debugging log
+    if request.method == 'POST':
+        wallet_address = blockchain.create_wallet()
+        if wallet_address:
+            print(f"✅ New wallet created: {wallet_address}")  # Debugging log
+        else:
+            print("❌ Wallet creation failed!")  # Debugging log
+        return redirect(url_for('index'))
     else:
-        print("❌ Wallet creation failed!")  # Debugging log
-    return redirect(url_for('index'))
+        return render_template('create_wallet.html')
 
 @app.route('/send_transaction', methods=['POST'])
 def send_transaction():
