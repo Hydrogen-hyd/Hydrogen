@@ -58,9 +58,7 @@
     <div class="container">
         <h1>Hydrogen Blockchain</h1>
         <h2>V0.0.8</h2>
-        <form action="/create_wallet" method="POST" style="display: inline;">
-            <button type="submit">Create New Wallet</button>
-        </form>
+        <button onclick="connectWallet()" class="connect-wallet-btn">Connect MetaMask to Hydrogen</button>
         <a href="/analytics"><button>View Analytics</button></a>
 
         <div class="wallets">
@@ -155,6 +153,90 @@
     </div>
 
     <script>
+        // Hydrogen blockchain configuration
+        const HYDROGEN_CHAIN_ID = '0x1337'; // Custom chain ID for Hydrogen blockchain
+        const HYDROGEN_NETWORK = {
+            chainId: HYDROGEN_CHAIN_ID,
+            chainName: 'Hydrogen Blockchain',
+            nativeCurrency: {
+                name: 'Hydrogen',
+                symbol: 'HYD',
+                decimals: 18
+            },
+            rpcUrls: ['http://127.0.0.1:8545'],
+            blockExplorerUrls: null
+        };
+
+        // Handle wallet connection
+        async function connectWallet() {
+            if (typeof window.ethereum === 'undefined') {
+                alert('MetaMask is not installed! Please install MetaMask to use the Hydrogen blockchain.');
+                return;
+            }
+
+            try {
+                // Request account access
+                const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                
+                // Try to switch to Hydrogen network
+                try {
+                    await window.ethereum.request({
+                        method: 'wallet_switchEthereumChain',
+                        params: [{ chainId: HYDROGEN_CHAIN_ID }],
+                    });
+                } catch (switchError) {
+                    // If the network doesn't exist, add it
+                    if (switchError.code === 4902) {
+                        try {
+                            await window.ethereum.request({
+                                method: 'wallet_addEthereumChain',
+                                params: [HYDROGEN_NETWORK],
+                            });
+                        } catch (addError) {
+                            console.error('Error adding Hydrogen network:', addError);
+                            alert('Failed to add Hydrogen network to MetaMask');
+                            return;
+                        }
+                    } else {
+                        console.error('Error switching to Hydrogen network:', switchError);
+                        alert('Failed to switch to Hydrogen network');
+                        return;
+                    }
+                }
+
+                // Send the connected address to our backend
+                const response = await fetch('/connect_wallet', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        address: accounts[0]
+                    })
+                });
+
+                if (response.ok) {
+                    location.reload(); // Refresh the page to show the connected wallet
+                } else {
+                    alert('Failed to connect wallet to Hydrogen blockchain');
+                }
+            } catch (error) {
+                console.error('Error connecting wallet:', error);
+                alert('Failed to connect wallet: ' + error.message);
+            }
+        }
+
+        // Listen for account changes
+        if (window.ethereum) {
+            window.ethereum.on('accountsChanged', function (accounts) {
+                location.reload();
+            });
+
+            window.ethereum.on('chainChanged', function (chainId) {
+                location.reload();
+            });
+        }
+
         document.getElementById('lock_time_enabled').addEventListener('change', function() {
             const lockTimeSection = document.getElementById('lock_time_section');
             lockTimeSection.style.display = this.checked ? 'block' : 'none';
