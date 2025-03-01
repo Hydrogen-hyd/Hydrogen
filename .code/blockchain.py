@@ -7,30 +7,22 @@ class Blockchain:
     def __init__(self):
         self.chain = []
         self.current_transactions = []
-        self.wallets = {}  # Now properly persists new wallets
+        self.wallets = {}
         self.smart_contracts = []
         self.token_supply = 1000000
         self.reputation_scores = {}
         self.create_block(prev_hash="1", proof=100)
         self.events = []
+        self.network_info = {
+            'chainId': '0x1337',
+            'networkName': 'Hydrogen Blockchain',
+            'symbol': 'HYD',
+            'decimals': 18,
+            'blockTime': 15  # 15 seconds block time
+        }
 
-    def create_wallet(self):
-        address = hashlib.sha256(str(time.time()).encode()).hexdigest()
-
-        # Check if wallet already exists (should be highly unlikely)
-        if address in self.wallets:
-            print("❌ Wallet already exists (very rare case)")
-            return None
-
-        # Assign initial balance and reputation
-        self.wallets[address] = {'balance': 100.0}
-        self.reputation_scores[address] = 50
-
-        # Store wallet creation event
-        self.add_event('Wallet Created', {'address': address})
-        print(f"✅ Wallet successfully created: {address}")  # Debugging log
-
-        return address
+    def get_network_info(self):
+        return self.network_info
 
     def new_transaction(self, sender, receiver, amount, lock_time=None, private=False):
         if sender not in self.wallets and sender != "faucet":
@@ -43,6 +35,9 @@ class Blockchain:
             print(f"❌ Insufficient funds for {sender}")
             return "Insufficient funds."
 
+        # Add nonce to transaction for MetaMask compatibility
+        nonce = len([tx for tx in self.current_transactions if tx['sender'] == sender])
+        
         fee = 0.5
         if sender != "faucet":
             self.wallets[sender]['balance'] -= (amount + fee)
@@ -53,6 +48,7 @@ class Blockchain:
             'receiver': receiver if not private else "Anonymous",
             'amount': amount if not private else "Hidden",
             'fee': fee,
+            'nonce': nonce,
             'block_hash': self.chain[-1]['hash'],
             'prev_block_hash': self.chain[-2]['hash'] if len(self.chain) > 1 else 'None',
             'lock_time': lock_time
