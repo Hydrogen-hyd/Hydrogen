@@ -24,17 +24,22 @@ def index():
         reputation_scores=blockchain.get_reputation_scores()
     )
 
-@app.route('/create_wallet', methods=['GET', 'POST'])
-def create_wallet():
-    if request.method == 'POST':
-        wallet_address = blockchain.create_wallet()
-        if wallet_address:
-            print(f"✅ New wallet created: {wallet_address}")  # Debugging log
-        else:
-            print("❌ Wallet creation failed!")  # Debugging log
-        return redirect(url_for('index'))
-    else:
-        return render_template('create_wallet.html')
+@app.route('/connect_wallet', methods=['POST'])
+def connect_wallet():
+    data = request.get_json()
+    address = data.get('address')
+    
+    if not address:
+        return jsonify({'error': 'No address provided'}), 400
+
+    # Add the wallet to our blockchain if it doesn't exist
+    if address not in blockchain.wallets:
+        blockchain.wallets[address] = {'balance': 100.0}  # Initial balance for new wallets
+        blockchain.reputation_scores[address] = 50  # Initial reputation score
+        blockchain.add_event('Wallet Connected', {'address': address})
+        print(f"✅ New wallet connected: {address}")
+    
+    return jsonify({'success': True, 'address': address})
 
 @app.route('/send_transaction', methods=['POST'])
 def send_transaction():
