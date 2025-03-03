@@ -34,7 +34,7 @@ def connect_wallet():
 
     # Add the wallet to our blockchain if it doesn't exist
     if address not in blockchain.wallets:
-        blockchain.wallets[address] = {'balance': 100.0}  # Initial balance for new wallets
+        blockchain.wallets[address] = {'balance': 0.0}  # Initial balance for new wallets (starting with 0 HYD)
         blockchain.reputation_scores[address] = 50  # Initial reputation score
         blockchain.add_event('Wallet Connected', {'address': address})
         print(f"✅ New wallet connected: {address}")
@@ -61,6 +61,7 @@ def send_transaction():
 def faucet():
     wallet = request.form['wallet']
     blockchain.faucet(wallet)
+    blockchain.add_event('Faucet Used', {'wallet': wallet, 'amount': 10})  # Explicitly log the faucet event
     return redirect(url_for('index'))
 
 @app.route('/mint_tokens', methods=['POST'])
