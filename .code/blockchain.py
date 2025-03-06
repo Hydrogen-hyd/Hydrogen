@@ -64,12 +64,25 @@ class Blockchain:
         if address in self.wallets:
             self.wallets[address]['balance'] += 10
             self.add_event('Faucet Claim', {'address': address, 'amount': 10})
+            self.update_reputation(address, address, action='faucet')
 
-    def update_reputation(self, sender, receiver):
-        if sender in self.reputation_scores:
-            self.reputation_scores[sender] = max(0, self.reputation_scores[sender] - random.randint(1, 5))
-        if receiver in self.reputation_scores:
-            self.reputation_scores[receiver] = min(100, self.reputation_scores[receiver] + random.randint(1, 5))
+    def update_reputation(self, sender, receiver, action=None):
+        # Initialize reputation if not present
+        if sender not in self.reputation_scores:
+            self.reputation_scores[sender] = 50
+        if receiver not in self.reputation_scores:
+            self.reputation_scores[receiver] = 50
+
+        # Update reputation based on action
+        if action == 'transaction':
+            self.reputation_scores[sender] = max(0, self.reputation_scores[sender] + 1)
+            self.reputation_scores[receiver] = min(100, self.reputation_scores[receiver] + 1)
+        elif action == 'smart_contract_creation':
+            self.reputation_scores[sender] = min(100, self.reputation_scores[sender] + 2)
+        elif action == 'smart_contract_execution':
+            self.reputation_scores[sender] = min(100, self.reputation_scores[sender] + 1)
+        elif action == 'faucet':
+            self.reputation_scores[sender] = max(0, self.reputation_scores[sender] - 1)
 
     def create_block(self, proof, prev_hash):
         block = {
