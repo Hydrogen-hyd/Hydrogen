@@ -34,7 +34,7 @@ def connect_wallet():
 
     # Add the wallet to our blockchain if it doesn't exist
     if address not in blockchain.wallets:
-        blockchain.wallets[address] = {'balance': 0.0}  # Initial balance for new wallets (starting with 0 HYD)
+        blockchain.wallets[address] = {'balance': 0.0}  # Initial balance for new wallets
         blockchain.reputation_scores[address] = 50  # Initial reputation score
         blockchain.add_event('Wallet Connected', {'address': address})
         print(f"✅ New wallet connected: {address}")
@@ -106,6 +106,10 @@ def analytics():
         token_supply=token_supply,
         circulating_supply=circulating_supply
     )
+
+@app.route('/hyd_price')
+def hyd_price():
+    return render_template('hyd_price.html', price=0.1)
 
 if __name__ == '__main__':
     app.run(debug=True)
