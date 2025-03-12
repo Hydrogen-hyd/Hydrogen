@@ -20,6 +20,7 @@ class Blockchain:
             'decimals': 18,
             'blockTime': 15  # 15 seconds block time
         }
+        self.hyd_price = 0.1  # Initial price in USD
 
     def get_network_info(self):
         return self.network_info
@@ -105,13 +106,15 @@ class Blockchain:
 
     def mint_tokens(self, amount):
         self.token_supply += amount
-        self.add_event('Tokens Minted', {'amount': amount})
+        self.hyd_price *= (1 - 0.01 * amount / self.token_supply)  # Decrease price
+        self.add_event('Tokens Minted', {'amount': amount, 'new_price': self.hyd_price})
 
     def burn_tokens(self, amount):
         if self.token_supply < amount:
             return "Insufficient token supply to burn."
         self.token_supply -= amount
-        self.add_event('Tokens Burned', {'amount': amount})
+        self.hyd_price *= (1 + 0.01 * amount / self.token_supply)  # Increase price
+        self.add_event('Tokens Burned', {'amount': amount, 'new_price': self.hyd_price})
 
     def create_smart_contract(self, contract_code):
         contract_hash = hashlib.sha256(contract_code.encode()).hexdigest()
@@ -140,3 +143,6 @@ class Blockchain:
 
     def get_reputation_scores(self):
         return self.reputation_scores
+
+    def get_hyd_price(self):
+        return self.hyd_price
