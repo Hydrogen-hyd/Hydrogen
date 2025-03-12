@@ -109,7 +109,13 @@ def analytics():
 
 @app.route('/hyd_price')
 def hyd_price():
-    return render_template('hyd_price.html', price=0.1)
+    price = blockchain.get_hyd_price()
+    return render_template('hyd_price.html', price=price)
+
+@app.route('/hyd_price_data')
+def hyd_price_data():
+    price = blockchain.get_hyd_price()
+    return jsonify({'price': price})
 
 if __name__ == '__main__':
     app.run(debug=True)
