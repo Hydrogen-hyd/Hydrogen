@@ -5,32 +5,168 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HYD Price</title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body {
             font-family: 'Montserrat', sans-serif;
             background: #121212;
             color: #fff;
             margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
+            padding: 20px;
         }
         .price-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #1e1e1e;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+        .chart-container {
+            position: relative;
+            height: 400px;
+            width: 100%;
+            margin: 20px 0;
+        }
+        h1 {
             text-align: center;
+            color: #fdbb2d;
+        }
+        .current-price {
+            font-size: 24px;
+            text-align: center;
+            margin: 20px 0;
+            padding: 10px;
+            background: #2a2a2a;
+            border-radius: 5px;
         }
         a {
+            display: block;
+            text-align: center;
             color: #fdbb2d;
             text-decoration: none;
+            margin-top: 20px;
+            padding: 10px;
+            background: #2a2a2a;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+        a:hover {
+            background: #3a3a3a;
         }
     </style>
 </head>
 <body>
     <div class="price-container">
-        <h1>HYD Price</h1>
-        <p><strong>Current Price:</strong> ${{ price }} USD</p>
-        <a href="/">Go Back to Dashboard</a>
+        <h1>HYD Price Chart</h1>
+        <div class="current-price">
+            <strong>Current Price:</strong> $<span id="current-price">0.0000</span> USD
+        </div>
+        <div class="chart-container">
+            <canvas id="priceChart"></canvas>
+        </div>
+        <div class="chart-options">
+            <button onclick="setTimeRange('hour')">Past Hour</button>
+            <button onclick="setTimeRange('all')">All Time</button>
+        </div>
+        <a href="/">Back to Dashboard</a>
     </div>
+
+    <script>
+        // Initialize empty arrays for storing price history
+        const priceData = [];
+        const timeLabels = [];
+
+        // Create the chart
+        const ctx = document.getElementById('priceChart').getContext('2d');
+        const priceChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: timeLabels,
+                datasets: [{
+                    label: 'HYD Price (USD)',
+                    data: priceData,
+                    borderColor: '#fdbb2d',
+                    backgroundColor: 'rgba(253, 187, 45, 0.1)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: '#fff'
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        ticks: {
+                            color: '#fff'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        ticks: {
+                            color: '#fff'
+                        }
+                    }
+                }
+            }
+        });
+
+        let currentRange = 'hour';
+
+        function setTimeRange(range) {
+            currentRange = range;
+            updateChart();
+        }
+
+        function updateChart() {
+            let endpoint = '/hyd_price_data';
+            if (currentRange === 'hour') {
+                endpoint += '?range=hour';
+            } else if (currentRange === 'all') {
+                endpoint += '?range=all';
+            }
+
+            fetch(endpoint)
+                .then(response => response.json())
+                .then(data => {
+                    const now = new Date();
+                    const timeStr = now.toLocaleTimeString();
+                    
+                    // Update arrays
+                    timeLabels.push(timeStr);
+                    priceData.push(data.price);
+                    
+                    // Keep only last 20 data points for hour range
+                    if (currentRange === 'hour' && timeLabels.length > 20) {
+                        timeLabels.shift();
+                        priceData.shift();
+                    }
+                    
+                    // Update chart
+                    priceChart.update();
+                    
+                    // Update current price display
+                    document.getElementById('current-price').textContent = data.price.toFixed(4);
+                });
+        }
+
+        // Update immediately and then every 2 seconds
+        updateChart();
+        setInterval(updateChart, 2000);
+    </script>
 </body>
 </html> 
