@@ -9,7 +9,7 @@
     <style>
         body {
             font-family: 'Montserrat', sans-serif;
-            background: #121212;
+            background: #000;
             color: #fff;
             margin: 0;
             padding: 20px;
@@ -17,7 +17,7 @@
         .price-container {
             max-width: 800px;
             margin: 0 auto;
-            background: #1e1e1e;
+            background: #111;
             padding: 20px;
             border-radius: 10px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
@@ -27,32 +27,54 @@
             height: 400px;
             width: 100%;
             margin: 20px 0;
+            background: #1e1e1e;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
         }
         h1 {
             text-align: center;
-            color: #fdbb2d;
+            color: #fff;
         }
         .current-price {
             font-size: 24px;
             text-align: center;
             margin: 20px 0;
             padding: 10px;
-            background: #2a2a2a;
+            background: #1e1e1e;
             border-radius: 5px;
+            border: 1px solid #333;
+        }
+        .chart-options {
+            text-align: center;
+            margin-top: 20px;
+        }
+        button {
+            background: #fff;
+            border: none;
+            color: #000;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background 0.3s, color 0.3s;
+        }
+        button:hover {
+            background: #333;
+            color: #fff;
         }
         a {
             display: block;
             text-align: center;
-            color: #fdbb2d;
+            color: #fff;
             text-decoration: none;
             margin-top: 20px;
             padding: 10px;
-            background: #2a2a2a;
+            background: #1e1e1e;
             border-radius: 5px;
             transition: background 0.3s;
         }
         a:hover {
-            background: #3a3a3a;
+            background: #333;
         }
     </style>
 </head>
@@ -86,8 +108,8 @@
                 datasets: [{
                     label: 'HYD Price (USD)',
                     data: priceData,
-                    borderColor: '#fdbb2d',
-                    backgroundColor: 'rgba(253, 187, 45, 0.1)',
+                    borderColor: '#fff',
+                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
                     borderWidth: 2,
                     fill: true,
                     tension: 0.4
