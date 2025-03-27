@@ -56,18 +56,126 @@
             color: #fff;
             text-decoration: none;
         }
+        .popup {
+            position: relative;
+            display: inline-block;
+            cursor: pointer;
+            color: #fff;
+            margin-left: 10px;
+        }
+        .popup .popuptext {
+            visibility: hidden;
+            width: 200px;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 8px 0;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -100px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+        .popup .popuptext::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: #333 transparent transparent transparent;
+        }
+        .popup:hover .popuptext {
+            visibility: visible;
+        }
+        .icon {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            background-color: #fff;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 20px;
+            color: #000;
+            font-weight: bold;
+            margin-left: 10px;
+            cursor: pointer;
+        }
+        .icon:hover {
+            background-color: #333;
+            color: #fff;
+        }
+        .login-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            transition: opacity 0.5s ease, backdrop-filter 0.5s ease;
+        }
+        .login-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+            backdrop-filter: blur(0);
+        }
+        .login-content {
+            text-align: center;
+            color: #fff;
+        }
+        .login-content h1 {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+        .login-content button {
+            background: #fff;
+            color: #000;
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s, color 0.3s;
+        }
+        .login-content button:hover {
+            background: #333;
+            color: #fff;
+        }
+        .disconnect-wallet-btn {
+            background: #fff;
+            color: #000;
+            transition: background 0.3s, color 0.3s;
+        }
+        .disconnect-wallet-btn:hover {
+            background: red;
+            color: #fff;
+        }
     </style>
 </head>
 <body>
-    <div class="container">
+    <div class="login-overlay" id="loginOverlay">
+        <div class="login-content">
+            <h1>Hydrogen</h1>
+            <button onclick="connectWallet()" id="walletButton">Connect Wallet</button>
+        </div>
+    </div>
+    <div class="container" id="mainContent">
         <h1>Hydrogen Blockchain</h1>
-        <h2>V0.1.3</h2>
-        <button onclick="connectWallet()" class="connect-wallet-btn">Connect MetaMask to Hydrogen</button>
+        <h2>V0.1.4</h2>
+        <button onclick="toggleWalletConnection()" id="mainWalletButton" class="connect-wallet-btn">Connect MetaMask to Hydrogen</button>
         <a href="/analytics"><button>View Analytics</button></a>
         <a href="/hyd_price"><button>HYD Price</button></a>
 
         <div class="wallets">
-            <h3>Your Wallets</h3>
+            <h3>Your Wallet</h3>
             <ul>
                 {% for address, wallet in wallets.items() %}
                     <li>
@@ -112,7 +220,9 @@
         </form>
 
         <div class="smart-contracts">
-            <h3>Smart Contracts</h3>
+            <h3>Smart Contracts <span class="popup"><span class="icon">i</span>
+                <span class="popuptext">Example Contract: <br>function example() { return true; }<br><br>Sample Contract: <br>function sample() { return false; }</span>
+            </span></h3>
             <form action="/create_smart_contract" method="POST">
                 <textarea name="contract_code" placeholder="Enter your smart contract code here..." required></textarea><br>
                 <button type="submit">Create Smart Contract</button>
@@ -172,6 +282,8 @@
             blockExplorerUrls: null
         };
 
+        let isConnected = false;
+
         // Handle wallet connection
         async function connectWallet() {
             if (typeof window.ethereum === 'undefined') {
@@ -221,13 +333,40 @@
                 });
 
                 if (response.ok) {
-                    location.reload(); // Refresh the page to show the connected wallet
+                    document.getElementById('loginOverlay').classList.add('hidden');
+                    isConnected = true;
+                    updateWalletButton();
                 } else {
                     alert('Failed to connect wallet to Hydrogen blockchain');
                 }
             } catch (error) {
                 console.error('Error connecting wallet:', error);
                 alert('Failed to connect wallet: ' + error.message);
+            }
+        }
+
+        function disconnectWallet() {
+            isConnected = false;
+            updateWalletButton();
+            alert('Wallet disconnected');
+        }
+
+        function toggleWalletConnection() {
+            if (isConnected) {
+                disconnectWallet();
+            } else {
+                connectWallet();
+            }
+        }
+
+        function updateWalletButton() {
+            const button = document.getElementById('mainWalletButton');
+            if (isConnected) {
+                button.textContent = 'Disconnect Wallet';
+                button.classList.add('disconnect-wallet-btn');
+            } else {
+                button.textContent = 'Connect MetaMask to Hydrogen';
+                button.classList.remove('disconnect-wallet-btn');
             }
         }
 
@@ -245,6 +384,14 @@
         document.getElementById('lock_time_enabled').addEventListener('change', function() {
             const lockTimeSection = document.getElementById('lock_time_section');
             lockTimeSection.style.display = this.checked ? 'block' : 'none';
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            if (window.ethereum && window.ethereum.selectedAddress) {
+                isConnected = true;
+                document.getElementById('loginOverlay').classList.add('hidden');
+                updateWalletButton();
+            }
         });
     </script>
 </body>
