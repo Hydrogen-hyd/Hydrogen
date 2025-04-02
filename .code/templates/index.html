@@ -112,24 +112,60 @@
             position: fixed;
             top: 20px;
             right: 20px;
-            background-color: #333;
-            color: #fff;
+            background-color: #1a1a1a;
+            color: #e0e0e0;
             padding: 15px;
-            border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
             z-index: 1001;
-            width: 250px;
+            width: 300px;
             opacity: 0;
-            transition: opacity 0.5s ease;
+            transition: opacity 0.5s ease, transform 0.3s ease;
+            transform: translateY(-10px);
         }
         .notification.show {
             opacity: 1;
+            transform: translateY(0);
+        }
+        .notification .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: none;
+            border: none;
+            color: #e0e0e0;
+            font-size: 18px;
+            cursor: pointer;
+            display: none;
+        }
+        .notification:hover .close-btn {
+            display: block;
+        }
+        .notifications-icon {
+            position: fixed;
+            top: 20px;
+            right: 60px;
+            background-color: #fff;
+            color: #000;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+        }
+        .notifications-icon:hover {
+            background-color: #333;
+            color: #fff;
         }
         .progress-bar {
             height: 5px;
-            background-color: #fff;
+            background-color: #444;
             width: 100%;
             transition: width 10s linear;
+            border-radius: 5px;
         }
         input[type="text"], input[type="number"], textarea, select {
             background-color: #000;
@@ -145,10 +181,52 @@
             outline: none;
             border-color: #fff;
         }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1002;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+            backdrop-filter: blur(5px);
+        }
+        .modal-content {
+            background-color: #333;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            color: #fff;
+            border-radius: 8px;
+        }
+        .close-modal {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close-modal:hover,
+        .close-modal:focus {
+            color: #fff;
+            text-decoration: none;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
+    <div id="notificationModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal()">&times;</span>
+            <h2>Past Notifications</h2>
+            <ul id="notificationsList"></ul>
+        </div>
+    </div>
     <div class="notification" id="notification">
+        <button class="close-btn" onclick="closeNotification()">&times;</button>
         <p id="notificationMessage">You have received a new transaction!</p>
         <div class="progress-bar" id="progressBar"></div>
     </div>
@@ -165,7 +243,8 @@
                 {% for address, wallet in wallets.items() %}
                     <li>
                         <strong>Address:</strong> {{ address }}<br>
-                        <strong>Balance:</strong> {{ wallet['balance'] }} HYD
+                        <strong>Balance:</strong> {{ wallet['balance'] }} HYD<br>
+                        <strong>Reputation:</strong> {{ reputation_scores[address] }} Points
                     </li>
                 {% endfor %}
             </ul>
@@ -173,8 +252,6 @@
 
         <h3>Send HYD Tokens</h3>
         <form action="/send_transaction" method="POST">
-            <label for="sender">Sender Address:</label>
-            <input type="text" id="sender" name="sender" required><br>
             <label for="recipient">Recipient Address:</label>
             <input type="text" id="recipient" name="recipient" required><br>
             <label for="amount">Amount:</label>
@@ -243,13 +320,6 @@
             <button type="submit">Burn Tokens</button>
         </form>
 
-        <h3>Reputation Scores</h3>
-        <div>
-            {% for address, score in reputation_scores.items() %}
-                <p><strong>{{ address }}:</strong> {{ score }} Points</p>
-            {% endfor %}
-        </div>
-
     </div>
 
     <script>
@@ -268,6 +338,7 @@
         };
 
         let isConnected = false;
+        let notifications = [];
 
         // Simulate loading completion
         window.addEventListener('load', () => {
@@ -368,7 +439,6 @@
             }
         }
 
-        // Function to show notifications
         function showNotification(message) {
             const notification = document.getElementById('notification');
             const progressBar = document.getElementById('progressBar');
@@ -381,10 +451,37 @@
             setTimeout(() => {
                 progressBar.style.width = '0%';
             }, 10); // Start progress bar animation
+            notifications.push(message);
         }
 
-        // Example usage of showNotification
-        // showNotification('You have received a new transaction!');
+        function closeNotification() {
+            const notification = document.getElementById('notification');
+            notification.classList.remove('show');
+        }
+
+        function openModal() {
+            console.log('Opening modal...');
+            const modal = document.getElementById('notificationModal');
+            const notificationsList = document.getElementById('notificationsList');
+            notificationsList.innerHTML = notifications.map(notification => `<li>${notification}</li>`).join('');
+            modal.style.display = 'block';
+            console.log('Modal opened with notifications:', notifications);
+        }
+
+        function closeModal() {
+            console.log('Closing modal...');
+            const modal = document.getElementById('notificationModal');
+            modal.style.display = 'none';
+            console.log('Modal closed.');
+        }
+
+        window.onclick = function(event) {
+            const modal = document.getElementById('notificationModal');
+            if (event.target == modal) {
+                console.log('Clicked outside modal, closing...');
+                modal.style.display = 'none';
+            }
+        }
 
         // Listen for account changes
         if (window.ethereum) {
@@ -414,6 +511,36 @@
             event.preventDefault();
             showNotification('Tokens claimed successfully!');
             this.submit();
+        });
+
+        // Add event listener for mint tokens form
+        document.querySelector('form[action="/mint_tokens"]').addEventListener('submit', function(event) {
+            event.preventDefault();
+            showNotification('Tokens minted successfully!');
+            this.submit();
+        });
+
+        // Add event listener for burn tokens form
+        document.querySelector('form[action="/burn_tokens"]').addEventListener('submit', function(event) {
+            event.preventDefault();
+            showNotification('Tokens burned successfully!');
+            this.submit();
+        });
+
+        // Add event listener for create smart contract form
+        document.querySelector('form[action="/create_smart_contract"]').addEventListener('submit', function(event) {
+            event.preventDefault();
+            showNotification('Smart contract created successfully!');
+            this.submit();
+        });
+
+        // Add event listener for execute smart contract form
+        document.querySelectorAll('form[action="/execute_smart_contract"]').forEach(form => {
+            form.addEventListener('submit', function(event) {
+                event.preventDefault();
+                showNotification('Smart contract executed successfully!');
+                this.submit();
+            });
         });
     </script>
 </body>
