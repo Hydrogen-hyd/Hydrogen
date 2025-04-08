@@ -66,18 +66,19 @@
         }
         .popup .popuptext {
             visibility: hidden;
-            width: 200px;
-            background-color: #333;
-            color: #fff;
-            text-align: center;
-            border-radius: 6px;
-            padding: 8px 0;
+            width: 300px;
+            background-color: #1a1a1a;
+            color: #e0e0e0;
+            text-align: left;
+            border-radius: 8px;
+            padding: 15px;
             position: absolute;
             z-index: 1;
             bottom: 125%;
             left: 50%;
-            margin-left: -100px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            margin-left: -150px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            transition: visibility 0.3s ease;
         }
         .popup .popuptext::after {
             content: "";
@@ -87,7 +88,7 @@
             margin-left: -5px;
             border-width: 5px;
             border-style: solid;
-            border-color: #333 transparent transparent transparent;
+            border-color: #1a1a1a transparent transparent transparent;
         }
         .popup:hover .popuptext {
             visibility: visible;
@@ -216,9 +217,93 @@
             text-decoration: none;
             cursor: pointer;
         }
+        .github-icon {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background-color: #fff;
+            color: #000;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .github-icon:hover {
+            background-color: #333;
+            color: #fff;
+        }
+        input[type="checkbox"] {
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            background-color: #000;
+            border: 1px solid #333;
+            border-radius: 4px;
+            cursor: pointer;
+            position: relative;
+            transition: background-color 0.3s, border-color 0.3s;
+        }
+        input[type="checkbox"]:checked {
+            background-color: #333;
+            border-color: #fff;
+        }
+        input[type="checkbox"]:checked::after {
+            content: '\2713';
+            color: #fff;
+            position: absolute;
+            top: 0;
+            left: 3px;
+            font-size: 14px;
+        }
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .checkbox-container label {
+            margin-left: 5px;
+            color: #e0e0e0;
+        }
+        #lock_time_section {
+            background-color: #111;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #333;
+            margin-top: 10px;
+            transition: all 0.3s ease;
+        }
+        #lock_time_section label {
+            color: #e0e0e0;
+            margin-bottom: 5px;
+            display: block;
+        }
+        #lock_time_section input[type="datetime-local"] {
+            background-color: #000;
+            color: #fff;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 10px;
+            width: 100%;
+            box-sizing: border-box;
+            margin-bottom: 10px;
+        }
+        #lock_time_section input[type="datetime-local"]:focus {
+            outline: none;
+            border-color: #fff;
+        }
     </style>
 </head>
 <body>
+    <a href="https://github.com/Hydrogen-hyd/Hydrogen" target="_blank" class="github-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
+            <path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.438 9.8 8.205 11.385.6.11.82-.26.82-.577v-2.17c-3.338.726-4.033-1.61-4.033-1.61-.546-1.387-1.333-1.757-1.333-1.757-1.09-.745.083-.73.083-.73 1.205.085 1.84 1.237 1.84 1.237 1.07 1.835 2.807 1.305 3.492.997.108-.775.42-1.305.763-1.605-2.665-.3-5.467-1.332-5.467-5.93 0-1.31.467-2.382 1.235-3.22-.123-.303-.535-1.523.117-3.176 0 0 1.007-.322 3.3 1.23a11.52 11.52 0 013.003-.403c1.02.005 2.045.137 3.003.403 2.29-1.552 3.295-1.23 3.295-1.23.655 1.653.243 2.873.12 3.176.77.838 1.235 1.91 1.235 3.22 0 4.61-2.807 5.625-5.48 5.92.43.37.823 1.102.823 2.222v3.293c0 .32.217.694.825.576C20.565 21.797 24 17.297 24 12c0-6.63-5.37-12-12-12z"/>
+        </svg>
+    </a>
     <div id="notificationModal" class="modal">
         <div class="modal-content">
             <span class="close-modal" onclick="closeModal()">&times;</span>
@@ -233,7 +318,7 @@
     </div>
     <div class="container" id="mainContent">
         <h1>Hydrogen Blockchain</h1>
-        <h2>V0.1.7</h2>
+        <h2>V0.1.8</h2>
         <button onclick="toggleWalletConnection()" id="mainWalletButton" class="connect-wallet-btn">Connect Wallet</button>
         <a href="/analytics"><button>View Analytics</button></a>
         <a href="/hyd_price"><button>HYD Price</button></a>
@@ -258,15 +343,19 @@
             <label for="amount">Amount:</label>
             <input type="number" id="amount" name="amount" required><br>
             
-            <input type="checkbox" id="lock_time_enabled" name="lock_time_enabled">
-            <label for="lock_time_enabled">Enable Time Lock</label><br>
+            <div class="checkbox-container">
+                <input type="checkbox" id="lock_time_enabled" name="lock_time_enabled">
+                <label for="lock_time_enabled">Enable Time Lock</label>
+            </div>
             <div id="lock_time_section" style="display: none;">
                 <label for="lock_time">Transaction Lock Time (UTC):</label>
                 <input type="datetime-local" id="lock_time" name="lock_time"><br>
             </div>
 
-            <input type="checkbox" id="private_tx_enabled" name="private_tx_enabled">
-            <label for="private_tx_enabled">Enable Private Transactions</label><br>
+            <div class="checkbox-container">
+                <input type="checkbox" id="private_tx_enabled" name="private_tx_enabled">
+                <label for="private_tx_enabled">Enable Private Transactions</label>
+            </div>
 
             <button type="submit">Send Tokens</button>
         </form>
@@ -284,7 +373,22 @@
 
         <div class="smart-contracts">
             <h3>Smart Contracts <span class="popup"><span class="icon">i</span>
-                <span class="popuptext">Example Contract: <br>function example() { return true; }<br><br>Sample Contract: <br>function sample() { return false; }</span>
+                <span class="popuptext">
+                    <strong>Example Contract 1:</strong><br>
+                    <code>function transfer(address to, uint256 amount) public returns (bool) {<br>
+                        require(balanceOf[msg.sender] >= amount, "Insufficient balance");<br>
+                        balanceOf[msg.sender] -= amount;<br>
+                        balanceOf[to] += amount;<br>
+                        emit Transfer(msg.sender, to, amount);<br>
+                        return true;<br>
+                    }</code><br><br>
+                    <strong>Example Contract 2:</strong><br>
+                    <code>function approve(address spender, uint256 amount) public returns (bool) {<br>
+                        allowance[msg.sender][spender] = amount;<br>
+                        emit Approval(msg.sender, spender, amount);<br>
+                        return true;<br>
+                    }</code>
+                </span>
             </span></h3>
             <form action="/create_smart_contract" method="POST">
                 <textarea name="contract_code" placeholder="Enter your smart contract code here..." required></textarea><br>
